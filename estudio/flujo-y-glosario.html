@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flujo de peticiones y glosario - CRUD de Temas</title>
+    <style>
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f4f4f5;
+        color: #222;
+        display: flex;
+      }
+
+      nav {
+        width: 240px;
+        flex-shrink: 0;
+        background: #fff;
+        border-right: 1px solid #ddd;
+        padding: 1.5rem 1rem;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        overflow-y: auto;
+      }
+
+      nav h2 {
+        font-size: 1rem;
+        margin-top: 0;
+      }
+
+      nav ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.5rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      nav a {
+        color: #1a56db;
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+
+      nav a:hover {
+        text-decoration: underline;
+      }
+
+      .volver {
+        display: inline-block;
+        margin-bottom: 1.5rem;
+        font-size: 0.85rem;
+      }
+
+      main {
+        flex: 1;
+        max-width: 860px;
+        padding: 2rem;
+      }
+
+      h1 {
+        font-size: 1.7rem;
+        margin-top: 0;
+      }
+
+      h2 {
+        margin-top: 2.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #ddd;
+        font-size: 1.3rem;
+      }
+
+      h3 {
+        font-size: 1.05rem;
+        margin-top: 1.5rem;
+      }
+
+      p, li {
+        line-height: 1.5;
+      }
+
+      code {
+        background: #eee;
+        padding: 0.1rem 0.35rem;
+        border-radius: 3px;
+        font-size: 0.9em;
+      }
+
+      pre {
+        background: #1e1e1e;
+        color: #e5e5e5;
+        padding: 1rem;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-size: 0.85rem;
+      }
+
+      pre code {
+        background: none;
+        padding: 0;
+        color: inherit;
+      }
+
+      .archivo {
+        font-size: 0.8rem;
+        color: #888;
+        margin: -0.75rem 0 0.5rem 0;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1rem 0;
+      }
+
+      th, td {
+        border: 1px solid #ddd;
+        padding: 0.5rem;
+        text-align: left;
+        font-size: 0.9rem;
+        vertical-align: top;
+      }
+
+      th {
+        background: #f0f0f0;
+      }
+
+      .flujo {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+
+      .flujo ol {
+        margin: 0;
+        padding-left: 1.2rem;
+      }
+
+      .flujo li {
+        margin-bottom: 0.5rem;
+      }
+
+      .mapa {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 1rem 1.25rem;
+        font-family: monospace;
+        font-size: 0.85rem;
+        white-space: pre;
+        overflow-x: auto;
+        line-height: 1.6;
+      }
+
+      .nota {
+        background: #e8f0fe;
+        border: 1px solid #a9c4f5;
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        margin: 1rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <a class="volver" href="index.html">&larr; Volver al manual general</a>
+      <h2>Contenido</h2>
+      <ul>
+        <li><a href="#mapa-archivos">Mapa de archivos</a></li>
+        <li><a href="#ruta-a-ruta">Cada ruta, de punta a punta</a></li>
+        <li><a href="#server-controller">server.js &harr; controllers.js</a></li>
+        <li><a href="#controller-model">controllers.js &harr; model.js</a></li>
+        <li><a href="#vista-cliente">views/topics.ejs &harr; public/app.js</a></li>
+        <li><a href="#glosario-js">Glosario: JavaScript</a></li>
+        <li><a href="#glosario-express">Glosario: Express</a></li>
+        <li><a href="#glosario-arrays">Glosario: metodos de array</a></li>
+        <li><a href="#glosario-web">Glosario: navegador / fetch</a></li>
+      </ul>
+    </nav>
+
+    <main>
+      <h1>Flujo de peticiones y como interactuan los archivos</h1>
+      <p>Esta guia complementa el manual general. Se enfoca en <strong>como viaja cada peticion por el proyecto</strong> y en <strong>que archivo le pasa la posta a cual</strong>, con el codigo real del repositorio como ejemplo.</p>
+
+      <h2 id="mapa-archivos">Mapa de archivos: quien depende de quien</h2>
+      <div class="mapa">navegador (HTML + fetch)
+    |
+    |  peticion HTTP (GET/POST)
+    v
+server.js  ---- require('./controllers') ---->  controllers.js
+                                                       |
+                                                       |  require('./model')
+                                                       v
+                                                    model.js  (datos en memoria)
+
+server.js  ---- res.render('topics') -------->  views/topics.ejs
+                                                       |
+                                                       |  &lt;script src="/app.js"&gt;
+                                                       v
+                                                  public/app.js  (corre en el navegador)</div>
+      <p><code>server.js</code> es el unico archivo que conoce las <em>rutas</em>. <code>controllers.js</code> es el unico que conoce <code>req</code> y <code>res</code>. <code>model.js</code> es el unico que toca el array de datos. Cada capa solo habla con la de al lado, nunca se salta una.</p>
+
+      <h2 id="ruta-a-ruta">Cada ruta, de punta a punta</h2>
+      <table>
+        <tr><th>Ruta</th><th>Controlador</th><th>Funcion del modelo</th><th>Respuesta</th></tr>
+        <tr><td><code>GET /</code></td><td><code>getTopics</code></td><td><code>getAllTopics()</code></td><td><code>res.render</code> (HTML)</td></tr>
+        <tr><td><code>POST /topics</code></td><td><code>createTopic</code></td><td><code>createTopic(nombre)</code></td><td><code>res.redirect('/')</code></td></tr>
+        <tr><td><code>POST /topics/:id/update</code></td><td><code>updateTopic</code></td><td><code>updateTopic(id, nombre)</code></td><td><code>res.redirect('/')</code></td></tr>
+        <tr><td><code>POST /topics/:id/delete</code></td><td><code>deleteTopic</code></td><td><code>deleteTopic(id)</code></td><td><code>res.redirect('/')</code></td></tr>
+        <tr><td><code>POST /topics/:id/vote</code></td><td><code>voteTopic</code></td><td><code>voteTopic(id)</code></td><td><code>res.json(...)</code></td></tr>
+        <tr><td><code>POST /topics/:id/links</code></td><td><code>createLink</code></td><td><code>createLink(id, url)</code></td><td><code>res.redirect('/')</code></td></tr>
+        <tr><td><code>POST /topics/:id/links/:linkId/update</code></td><td><code>updateLink</code></td><td><code>updateLink(topicId, linkId, url)</code></td><td><code>res.redirect('/')</code></td></tr>
+        <tr><td><code>POST /topics/:id/links/:linkId/delete</code></td><td><code>deleteLink</code></td><td><code>deleteLink(topicId, linkId)</code></td><td><code>res.redirect('/')</code></td></tr>
+        <tr><td><code>POST /topics/:id/links/:linkId/vote</code></td><td><code>voteLink</code></td><td><code>voteLink(topicId, linkId)</code></td><td><code>res.json(...)</code></td></tr>
+      </table>
+      <div class="nota">Patron a notar: las acciones que vienen de un <code>&lt;form&gt;</code> normal terminan en <code>res.redirect('/')</code> (recargan la pagina completa). Las acciones que vienen de <code>fetch</code> (votar) terminan en <code>res.json(...)</code> (no recargan nada, solo mandan datos).</div>
+
+      <h2 id="server-controller">1. server.js habla con controllers.js</h2>
+      <p><code>server.js</code> importa el modulo de controladores y conecta cada ruta con su funcion:</p>
+      <p class="archivo">server.js</p>
+      <pre><code>const controllers = require('./controllers')
+...
+app.post('/topics/:id/vote', controllers.voteTopic)</code></pre>
+      <p>Express llama a <code>controllers.voteTopic</code> automaticamente cuando llega un <code>POST</code> a esa URL, pasandole <code>req</code> y <code>res</code> como argumentos.</p>
+
+      <h2 id="controller-model">2. controllers.js habla con model.js</h2>
+      <p>El controlador no sabe nada de arrays ni de <code>votos</code>. Solo traduce la peticion HTTP a una llamada de funcion:</p>
+      <p class="archivo">controllers.js</p>
+      <pre><code>const topics = require('./model')
+
+voteTopic: function (req, res) {
+    const id = req.params.id
+    topics.voteTopic(id)
+    res.json(topics.getAllTopics())
+}</code></pre>
+      <p>Y <code>model.js</code> es quien realmente modifica los datos:</p>
+      <p class="archivo">model.js</p>
+      <pre><code>function voteTopic(id){
+    const topic = topics.find(t => t.id === parseInt(id))
+    if (!topic) return false
+    topic.votos = topic.votos + 1
+    return true
+}</code></pre>
+      <p>Nota el <code>parseInt(id)</code>: <code>req.params.id</code> siempre llega como <strong>texto</strong> (viene de la URL), aunque en el array los <code>id</code> son numeros. Sin el <code>parseInt</code>, <code>===</code> nunca daria <code>true</code>.</p>
+
+      <h3>Ejemplo completo: crear un tema</h3>
+      <div class="flujo">
+        <ol>
+          <li>El usuario llena el input <code>name="nombre"</code> y aprieta "Agregar tema" (formulario normal, sin JS).</li>
+          <li>El navegador manda <code>POST /topics</code> con el body <code>nombre=...</code>.</li>
+          <li><code>server.js</code> lo enruta a <code>controllers.createTopic</code>.</li>
+          <li><code>controllers.js</code> lee <code>req.body.nombre</code> y llama a <code>topics.createTopic(nombre)</code>.</li>
+          <li><code>model.js</code> empuja un objeto nuevo al array <code>topics</code> con <code>push</code>.</li>
+          <li>El controlador responde <code>res.redirect('/')</code>: el navegador vuelve a pedir <code>GET /</code> y ve la lista actualizada.</li>
+        </ol>
+      </div>
+
+      <h2 id="vista-cliente">3. views/topics.ejs y public/app.js hablan por fetch</h2>
+      <p>El boton de votar no es un formulario cualquiera: tiene la clase <code>vote-form</code>, y <code>public/app.js</code> escucha todos los <code>submit</code> de la pagina:</p>
+      <p class="archivo">public/app.js</p>
+      <pre><code>document.addEventListener('DOMContentLoaded', () => {
+  const list = document.getElementById('topicsList')
+  list.addEventListener('submit', function(e){
+    if (e.target.classList.contains('vote-form')){
+      e.preventDefault()
+      fetch(e.target.action, {method: 'POST'})
+        .then(res => res.json())
+        .then(topics => {
+          list.innerHTML = renderTopics(topics)
+        })
+    }
+  })
+})</code></pre>
+      <p><code>e.preventDefault()</code> es la clave: cancela el envio normal del formulario (que recargaria la pagina) y en su lugar manda la misma peticion por <code>fetch</code>. El controlador responde JSON en vez de HTML, y <code>renderTopics()</code> reconstruye la lista en el navegador sin recargar.</p>
+      <div class="nota">Esto es lo que separa un formulario "normal" (<code>action</code> + <code>method</code>, recarga la pagina) de uno interceptado por JavaScript (misma <code>action</code>, pero el navegador nunca navega).</div>
+
+      <h2 id="glosario-js">Glosario: JavaScript (palabras reservadas y conceptos)</h2>
+      <table>
+        <tr><th>Palabra / concepto</th><th>Que hace</th></tr>
+        <tr><td><code>const</code></td><td>Declara una variable que no se puede reasignar.</td></tr>
+        <tr><td><code>let</code></td><td>Declara una variable que si se puede reasignar (usada para el array <code>topics</code>, aunque en la practica solo se mutan sus elementos).</td></tr>
+        <tr><td><code>function</code></td><td>Declara una funcion con nombre, ej: <code>function voteTopic(id) {...}</code>.</td></tr>
+        <tr><td>Arrow function <code>=&gt;</code></td><td>Sintaxis corta para funciones, ej: <code>t =&gt; t.id === id</code>.</td></tr>
+        <tr><td><code>this</code></td><td>Dentro de un callback de Express (<code>function(req,res){...}</code>) no se usa en este proyecto; las funciones son simples.</td></tr>
+        <tr><td><code>require(...)</code></td><td>Importa un modulo de Node. Ej: <code>require('./model')</code> trae lo que exporta <code>model.js</code>.</td></tr>
+        <tr><td><code>module.exports</code></td><td>Define que "sale" de un archivo cuando otro lo importa con <code>require</code>.</td></tr>
+        <tr><td><code>if / return false</code></td><td>Patron usado en <code>model.js</code>: si no se encontro el dato, corta la funcion devolviendo <code>false</code> en vez de lanzar un error.</td></tr>
+        <tr><td><code>parseInt(valor)</code></td><td>Convierte texto a numero entero. Necesario porque <code>req.params</code> siempre da strings.</td></tr>
+        <tr><td>Spread <code>[...topics]</code></td><td>Crea una copia superficial del array, para no ordenar (<code>sort</code>) el array original por accidente.</td></tr>
+        <tr><td>Template string <code>`texto ${var}`</code></td><td>String con variables interpoladas, usado en <code>public/app.js</code> para armar HTML dinamicamente.</td></tr>
+      </table>
+
+      <h2 id="glosario-express">Glosario: Express</h2>
+      <table>
+        <tr><th>Metodo / objeto</th><th>Que hace</th></tr>
+        <tr><td><code>express()</code></td><td>Crea la aplicacion Express (<code>const app = express()</code>).</td></tr>
+        <tr><td><code>app.set('view engine', 'ejs')</code></td><td>Le dice a Express que use EJS para renderizar vistas.</td></tr>
+        <tr><td><code>app.use(middleware)</code></td><td>Registra una funcion que corre en todas las peticiones antes de llegar a las rutas.</td></tr>
+        <tr><td><code>express.urlencoded()</code></td><td>Middleware que lee formularios HTML y llena <code>req.body</code>.</td></tr>
+        <tr><td><code>express.static(carpeta)</code></td><td>Middleware que sirve archivos tal cual (CSS, JS del navegador) desde una carpeta.</td></tr>
+        <tr><td><code>app.get(ruta, fn)</code></td><td>Registra una ruta que responde a peticiones <code>GET</code>.</td></tr>
+        <tr><td><code>app.post(ruta, fn)</code></td><td>Registra una ruta que responde a peticiones <code>POST</code>.</td></tr>
+        <tr><td><code>app.listen(puerto, fn)</code></td><td>Arranca el servidor HTTP en ese puerto.</td></tr>
+        <tr><td><code>req.params</code></td><td>Valores capturados de la URL. Ej: en <code>/topics/:id</code>, <code>req.params.id</code>.</td></tr>
+        <tr><td><code>req.body</code></td><td>Datos enviados en el cuerpo de la peticion (formulario o JSON).</td></tr>
+        <tr><td><code>res.render(vista, datos)</code></td><td>Genera HTML combinando una plantilla EJS con datos, y lo manda como respuesta.</td></tr>
+        <tr><td><code>res.redirect(ruta)</code></td><td>Le dice al navegador "pedi esta otra URL", provocando una recarga.</td></tr>
+        <tr><td><code>res.json(datos)</code></td><td>Manda la respuesta como JSON en vez de HTML.</td></tr>
+      </table>
+
+      <h2 id="glosario-arrays">Glosario: metodos de array usados en model.js</h2>
+      <table>
+        <tr><th>Metodo</th><th>Que hace</th><th>Donde se usa</th></tr>
+        <tr><td><code>.find(fn)</code></td><td>Devuelve el <strong>primer</strong> elemento que cumple la condicion, o <code>undefined</code>.</td><td>Buscar un tema o enlace por id.</td></tr>
+        <tr><td><code>.findIndex(fn)</code></td><td>Devuelve la <strong>posicion</strong> del primer elemento que cumple la condicion, o <code>-1</code>.</td><td>Ubicar un tema para borrarlo o editarlo.</td></tr>
+        <tr><td><code>.push(item)</code></td><td>Agrega un elemento al final del array.</td><td>Crear un tema o enlace nuevo.</td></tr>
+        <tr><td><code>.splice(indice, cantidad)</code></td><td>Elimina (o inserta) elementos en una posicion dada.</td><td>Borrar un tema o enlace.</td></tr>
+        <tr><td><code>.sort(fn)</code></td><td>Ordena el array segun la funcion comparadora.</td><td><code>(a, b) =&gt; b.votos - a.votos</code> ordena de mayor a menor votos.</td></tr>
+        <tr><td><code>.forEach(fn)</code></td><td>Ejecuta una funcion por cada elemento, sin devolver nada nuevo.</td><td>Ordenar los enlaces de cada tema.</td></tr>
+        <tr><td><code>.map(fn)</code></td><td>Crea un array nuevo transformando cada elemento.</td><td>En <code>public/app.js</code>, convertir cada tema en un bloque de HTML.</td></tr>
+        <tr><td><code>.join('')</code></td><td>Une un array de strings en un solo string.</td><td>Pegar todos los bloques de HTML generados por <code>.map</code>.</td></tr>
+      </table>
+
+      <h2 id="glosario-web">Glosario: navegador / fetch (public/app.js)</h2>
+      <table>
+        <tr><th>Metodo / evento</th><th>Que hace</th></tr>
+        <tr><td><code>document.addEventListener('DOMContentLoaded', fn)</code></td><td>Corre <code>fn</code> recien cuando el HTML termino de cargar.</td></tr>
+        <tr><td><code>document.getElementById(id)</code></td><td>Busca un elemento por su atributo <code>id</code>.</td></tr>
+        <tr><td><code>elemento.addEventListener('submit', fn)</code></td><td>Escucha el envio de cualquier formulario dentro de ese elemento.</td></tr>
+        <tr><td><code>event.target</code></td><td>El elemento exacto que disparo el evento (el formulario que se envio).</td></tr>
+        <tr><td><code>event.target.classList.contains('clase')</code></td><td>Revisa si ese elemento tiene una clase CSS especifica.</td></tr>
+        <tr><td><code>event.preventDefault()</code></td><td>Cancela la accion por defecto del navegador (evita que el formulario recargue la pagina).</td></tr>
+        <tr><td><code>fetch(url, opciones)</code></td><td>Manda una peticion HTTP desde JavaScript, sin recargar la pagina.</td></tr>
+        <tr><td><code>.then(fn)</code></td><td>Se ejecuta cuando la promesa de <code>fetch</code> se resuelve (ej: cuando llega la respuesta).</td></tr>
+        <tr><td><code>response.json()</code></td><td>Convierte el cuerpo de la respuesta (texto) en un objeto/array de JavaScript.</td></tr>
+        <tr><td><code>elemento.innerHTML = ...</code></td><td>Reemplaza el contenido HTML de un elemento por el string generado.</td></tr>
+      </table>
+    </main>
+  </body>
+</html>
