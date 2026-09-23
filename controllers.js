@@ -1,4 +1,4 @@
-const topics = require('../models/topics')
+const topics = require('./model')
 
 module.exports = {
     getTopics: function (req, res) {

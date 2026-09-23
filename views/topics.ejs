@@ -1,45 +1,68 @@
-<ul id="topicsList">
-  <% topics.forEach(topic => { %>
-    <li>
-      <%= topic.nombre %>
-      <ul>
-        <% topic.enlaces.forEach(enlace => { %>
-          <li>
-            <%= enlace.url %>
-            <form action="/topics/<%= topic.id %>/links/<%= enlace.id %>/delete" method="POST">
-              <button type="submit">Borrar enlace</button>
-            </form>
-            <form action="/topics/<%= topic.id %>/links/<%= enlace.id %>/update" method="POST">
-              <input type="text" name="nuevaURL" value="<%= enlace.url %>">
-              <button type="submit">Actualizar Enlace</button>
-            </form>
-            <form class="vote-form" action="/topics/<%= topic.id %>/links/<%= enlace.id %>/vote" method="POST">
-              <button type="submit"> Votar (<%= enlace.votos %>)</button>
-            </form>
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CRUD de Temas</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="container">
+      <h1>Temas de aprendizaje</h1>
+
+      <form class="topic-form" action="/topics" method="POST">
+        <input type="text" name="nombre" placeholder="Nombre del tema" required>
+        <button type="submit">Agregar tema</button>
+      </form>
+
+      <ul id="topicsList" class="topics">
+        <% topics.forEach(topic => { %>
+          <li class="topic">
+            <div class="topic-header">
+              <span class="topic-name"><%= topic.nombre %></span>
+              <form class="vote-form" action="/topics/<%= topic.id %>/vote" method="POST">
+                <button type="submit">Votar (<%= topic.votos %>)</button>
+              </form>
+            </div>
+
+            <ul class="links">
+              <% topic.enlaces.forEach(enlace => { %>
+                <li class="link">
+                  <a class="link-url" href="<%= enlace.url %>" target="_blank" rel="noreferrer"><%= enlace.url %></a>
+                  <div class="link-actions">
+                    <form action="/topics/<%= topic.id %>/links/<%= enlace.id %>/delete" method="POST">
+                      <button type="submit">Borrar enlace</button>
+                    </form>
+                    <form action="/topics/<%= topic.id %>/links/<%= enlace.id %>/update" method="POST">
+                      <input type="text" name="nuevaURL" value="<%= enlace.url %>">
+                      <button type="submit">Actualizar enlace</button>
+                    </form>
+                    <form class="vote-form" action="/topics/<%= topic.id %>/links/<%= enlace.id %>/vote" method="POST">
+                      <button type="submit">Votar (<%= enlace.votos %>)</button>
+                    </form>
+                  </div>
+                </li>
+              <% }) %>
+            </ul>
+
+            <div class="topic-actions">
+              <form action="/topics/<%= topic.id %>/delete" method="POST">
+                <button type="submit">Borrar</button>
+              </form>
+              <form action="/topics/<%= topic.id %>/update" method="POST">
+                <input type="text" name="nuevoNombre" value="<%= topic.nombre %>">
+                <button type="submit">Actualizar</button>
+              </form>
+              <form action="/topics/<%= topic.id %>/links" method="POST">
+                <input type="text" name="link" placeholder="URL del enlace" required>
+                <button type="submit">Agregar enlace</button>
+              </form>
+            </div>
           </li>
         <% }) %>
       </ul>
-      <form action="/topics/<%= topic.id %>/delete" method="POST">
-        <button type="submit">Borrar</button>
-      </form>
-      <form action="/topics/<%= topic.id %>/update" method="POST">
-        <input type="text" name="nuevoNombre" value="<%= topic.nombre %>">
-        <button type="submit">Actualizar</button>
-      </form>
-      <form action="/topics/<%= topic.id %>/links" method="POST">
-        <input type="text" name="link" placeholder="URL del enlace" required>
-        <button type="submit">Agregar enlace</button>
-      </form>
-      <form class="vote-form" action="/topics/<%= topic.id %>/vote" method="POST">
-        <button type="submit"> Votar (<%= topic.votos %>)</button>
-      </form>
-    </li>
-  <% }) %>
-</ul>
+    </main>
 
-<form action="/topics" method="POST">
-  <input type="text" name="nombre" placeholder="Nombre del tema" required>
-  <button type="submit">Agregar tema</button>
-</form>
-
-<script src="/js/votes.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

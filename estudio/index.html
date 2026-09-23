@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Manual de estudio - CRUD de Temas</title>
+    <style>
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f4f4f5;
+        color: #222;
+        display: flex;
+      }
+
+      nav {
+        width: 220px;
+        flex-shrink: 0;
+        background: #fff;
+        border-right: 1px solid #ddd;
+        padding: 1.5rem 1rem;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        overflow-y: auto;
+      }
+
+      nav h2 {
+        font-size: 1rem;
+        margin-top: 0;
+      }
+
+      nav ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      nav a {
+        color: #1a56db;
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+
+      nav a:hover {
+        text-decoration: underline;
+      }
+
+      main {
+        flex: 1;
+        max-width: 800px;
+        padding: 2rem;
+      }
+
+      h1 {
+        font-size: 1.7rem;
+        margin-top: 0;
+      }
+
+      h2 {
+        margin-top: 2.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #ddd;
+        font-size: 1.3rem;
+      }
+
+      h3 {
+        font-size: 1.05rem;
+      }
+
+      p, li {
+        line-height: 1.5;
+      }
+
+      code {
+        background: #eee;
+        padding: 0.1rem 0.35rem;
+        border-radius: 3px;
+        font-size: 0.9em;
+      }
+
+      pre {
+        background: #1e1e1e;
+        color: #e5e5e5;
+        padding: 1rem;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-size: 0.85rem;
+      }
+
+      pre code {
+        background: none;
+        padding: 0;
+        color: inherit;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1rem 0;
+      }
+
+      th, td {
+        border: 1px solid #ddd;
+        padding: 0.5rem;
+        text-align: left;
+        font-size: 0.9rem;
+      }
+
+      th {
+        background: #f0f0f0;
+      }
+
+      .flujo {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 1rem;
+      }
+
+      .flujo ol {
+        margin: 0;
+        padding-left: 1.2rem;
+      }
+
+      .flujo li {
+        margin-bottom: 0.5rem;
+      }
+
+      .nota {
+        background: #e8f0fe;
+        border: 1px solid #a9c4f5;
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <h2>Contenido</h2>
+      <ul>
+        <li><a href="#que-es-crud">Que es un CRUD</a></li>
+        <li><a href="#mvc">Arquitectura MVC</a></li>
+        <li><a href="#archivos">Archivos del proyecto</a></li>
+        <li><a href="#rutas-http">Rutas HTTP</a></li>
+        <li><a href="#express">Express y middlewares</a></li>
+        <li><a href="#ejs">EJS (vistas)</a></li>
+        <li><a href="#flujo-request">Flujo de una peticion</a></li>
+        <li><a href="#flujo-votar">Ejemplo: votar un tema</a></li>
+        <li><a href="#glosario">Glosario</a></li>
+      </ul>
+    </nav>
+
+    <main>
+      <h1>Manual de estudio: CRUD de Temas</h1>
+      <p>Este manual explica los conceptos y el flujo de datos del proyecto <code>CRUD</code>, paso a paso, tomando como base su propio codigo.</p>
+
+      <h2 id="que-es-crud">Que es un CRUD</h2>
+      <p>CRUD es un acronimo que resume las cuatro operaciones basicas sobre datos:</p>
+      <table>
+        <tr><th>Letra</th><th>Operacion</th><th>En este proyecto</th></tr>
+        <tr><td>C</td><td>Create (crear)</td><td><code>createTopic</code>, <code>createLink</code></td></tr>
+        <tr><td>R</td><td>Read (leer)</td><td><code>getAllTopics</code></td></tr>
+        <tr><td>U</td><td>Update (actualizar)</td><td><code>updateTopic</code>, <code>updateLink</code></td></tr>
+        <tr><td>D</td><td>Delete (borrar)</td><td><code>deleteTopic</code>, <code>deleteLink</code></td></tr>
+      </table>
+      <p>En este proyecto los datos (<code>topics</code> y sus <code>enlaces</code>) se guardan en memoria, en un array dentro de <code>model.js</code>. Eso significa que se reinician cada vez que se reinicia el servidor (no hay base de datos).</p>
+
+      <h2 id="mvc">Arquitectura MVC</h2>
+      <p>MVC separa el codigo en tres responsabilidades para que cada archivo tenga una sola razon de existir:</p>
+      <ul>
+        <li><strong>Modelo</strong> (<code>model.js</code>): guarda los datos y sabe como crearlos, modificarlos y borrarlos. No sabe nada de HTTP.</li>
+        <li><strong>Vista</strong> (<code>views/topics.ejs</code>): convierte los datos en HTML para el navegador. No sabe nada de logica de negocio.</li>
+        <li><strong>Controlador</strong> (<code>controllers.js</code>): recibe la peticion HTTP, le pide datos o cambios al modelo, y decide que devolver (renderizar la vista o mandar JSON).</li>
+      </ul>
+      <div class="nota">Regla practica: si estas escribiendo SQL o manipulando el array de datos, eso va en el modelo. Si estas leyendo <code>req.body</code> o <code>req.params</code>, eso va en el controlador. Si estas escribiendo HTML, eso va en la vista.</div>
+
+      <h2 id="archivos">Archivos del proyecto</h2>
+      <table>
+        <tr><th>Archivo</th><th>Rol</th></tr>
+        <tr><td><code>server.js</code></td><td>Arranca Express, configura el motor de vistas, registra las rutas y levanta el servidor.</td></tr>
+        <tr><td><code>controllers.js</code></td><td>Una funcion por cada ruta. Lee la peticion, llama al modelo, responde.</td></tr>
+        <tr><td><code>model.js</code></td><td>El array <code>topics</code> en memoria y las funciones para crear/leer/actualizar/borrar temas y enlaces.</td></tr>
+        <tr><td><code>views/topics.ejs</code></td><td>Plantilla EJS que arma la lista de temas en HTML.</td></tr>
+        <tr><td><code>public/app.js</code></td><td>JavaScript del navegador: intercepta el formulario de votar y lo manda por <code>fetch</code> sin recargar la pagina.</td></tr>
+        <tr><td><code>public/styles.css</code></td><td>Estilos visuales.</td></tr>
+      </table>
+
+      <h2 id="rutas-http">Rutas HTTP</h2>
+      <p>Cada accion del usuario dispara una peticion a una ruta especifica. Estas son las que define <code>server.js</code>:</p>
+      <pre><code>GET  /                                    -> listar temas
+POST /topics                              -> crear tema
+POST /topics/:id/update                   -> actualizar tema
+POST /topics/:id/delete                   -> borrar tema
+POST /topics/:id/vote                     -> votar tema
+POST /topics/:id/links                    -> crear enlace
+POST /topics/:id/links/:linkId/update     -> actualizar enlace
+POST /topics/:id/links/:linkId/delete     -> borrar enlace
+POST /topics/:id/links/:linkId/vote       -> votar enlace</code></pre>
+      <p><code>:id</code> y <code>:linkId</code> son <strong>parametros de ruta</strong>: partes variables de la URL que Express expone en <code>req.params</code>.</p>
+
+      <h2 id="express">Express y middlewares</h2>
+      <p>Express procesa cada peticion pasandola por una cadena de <strong>middlewares</strong> antes de llegar al controlador. En <code>server.js</code>:</p>
+      <pre><code>app.use(express.urlencoded({ extended: true })) // lee formularios y llena req.body
+app.use(express.static(path.join(__dirname, 'public'))) // sirve app.js y styles.css</code></pre>
+      <p>Despues de los middlewares, cada <code>app.get</code> / <code>app.post</code> conecta una ruta con la funcion del controlador que la resuelve.</p>
+
+      <h2 id="ejs">EJS (vistas)</h2>
+      <p>EJS es un motor de plantillas: permite mezclar HTML con JavaScript para generar HTML dinamico en el servidor.</p>
+      <table>
+        <tr><th>Sintaxis</th><th>Uso</th></tr>
+        <tr><td><code>&lt;%= valor %&gt;</code></td><td>Imprime un valor escapado (seguro contra HTML malicioso).</td></tr>
+        <tr><td><code>&lt;% codigo %&gt;</code></td><td>Ejecuta codigo JS sin imprimir nada (loops, ifs).</td></tr>
+      </table>
+      <p>Ejemplo real de <code>topics.ejs</code>: <code>&lt;% topics.forEach(topic =&gt; { %&gt; ... &lt;% }) %&gt;</code> recorre el array y repite el bloque HTML por cada tema.</p>
+
+      <h2 id="flujo-request">Flujo de una peticion (request/response)</h2>
+      <div class="flujo">
+        <ol>
+          <li>El navegador manda una peticion HTTP (por ejemplo, un formulario hace <code>POST /topics</code>).</li>
+          <li>Express la recibe y la pasa por los middlewares (<code>urlencoded</code>, <code>static</code>).</li>
+          <li>Express busca la ruta que coincide y ejecuta la funcion del controlador asociada.</li>
+          <li>El controlador lee <code>req.body</code> / <code>req.params</code> y llama a una funcion del modelo.</li>
+          <li>El modelo modifica el array en memoria y devuelve el resultado.</li>
+          <li>El controlador responde: o renderiza una vista EJS (<code>res.render</code>), o redirige (<code>res.redirect</code>), o devuelve JSON (<code>res.json</code>).</li>
+          <li>El navegador recibe la respuesta y actualiza lo que el usuario ve.</li>
+        </ol>
+      </div>
+
+      <h2 id="flujo-votar">Ejemplo completo: votar un tema</h2>
+      <p>Este es el recorrido exacto de un clic en el boton "Votar", de punta a punta:</p>
+      <div class="flujo">
+        <ol>
+          <li><code>public/app.js</code> intercepta el <code>submit</code> del formulario con clase <code>vote-form</code> y hace <code>fetch(action, { method: 'POST' })</code> en vez de dejar que el navegador recargue la pagina.</li>
+          <li>La peticion llega a <code>POST /topics/:id/vote</code>, definida en <code>server.js</code>.</li>
+          <li>Express ejecuta <code>controllers.voteTopic</code>, que toma <code>req.params.id</code>.</li>
+          <li><code>voteTopic</code> llama a <code>topics.voteTopic(id)</code> en <code>model.js</code>, que busca el tema por id y le suma un voto.</li>
+          <li>El controlador responde con <code>res.json(topics.getAllTopics())</code>: la lista completa de temas, ya reordenada por votos.</li>
+          <li><code>app.js</code> recibe ese JSON y reconstruye el HTML con <code>renderTopics()</code>, reemplazando <code>list.innerHTML</code>.</li>
+          <li>El usuario ve el contador actualizado y el tema reordenado, sin recargar la pagina.</li>
+        </ol>
+      </div>
+
+      <h2 id="glosario">Glosario rapido</h2>
+      <table>
+        <tr><th>Termino</th><th>Significado</th></tr>
+        <tr><td>Middleware</td><td>Funcion que se ejecuta en el medio del ciclo peticion-respuesta, antes del controlador.</td></tr>
+        <tr><td><code>req</code></td><td>Objeto con todo lo que mando el cliente (parametros, body, headers).</td></tr>
+        <tr><td><code>res</code></td><td>Objeto para construir la respuesta que vuelve al cliente.</td></tr>
+        <tr><td><code>req.params</code></td><td>Valores tomados de la URL (ej: el <code>:id</code> de la ruta).</td></tr>
+        <tr><td><code>req.body</code></td><td>Datos enviados en el cuerpo de la peticion (ej: un formulario).</td></tr>
+        <tr><td>Archivo estatico</td><td>Archivo que Express sirve tal cual (CSS, JS del cliente, imagenes), sin procesarlo.</td></tr>
+        <tr><td>Renderizar</td><td>Generar HTML en el servidor combinando una plantilla (EJS) con datos.</td></tr>
+      </table>
+    </main>
+  </body>
+</html>
